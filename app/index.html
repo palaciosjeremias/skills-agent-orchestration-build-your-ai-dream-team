@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Project Pulse project health dashboard">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="dashboard-header">
+        <div>
+          <p class="eyebrow">Portfolio overview</p>
+          <h1>Project Pulse</h1>
+          <p class="intro">A clear view of active work, ownership, and momentum.</p>
+        </div>
+        <section class="dashboard-summary" aria-label="Project summary">
+          <span class="summary-label">Active projects</span>
+          <strong id="project-count" aria-live="polite">—</strong>
+        </section>
+      </header>
+
+      <section class="projects-section" aria-labelledby="projects-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Current work</p>
+            <h2 id="projects-heading">Projects</h2>
+          </div>
+          <p id="status-message" class="status-message" role="status" aria-live="polite">Loading projects…</p>
+        </div>
+        <div id="project-list" class="project-grid" aria-busy="true"></div>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        "use strict";
+
+        const requiredFields = ["name", "owner", "status", "recentActivity", "priority"];
+        const validStatuses = new Set(["On Track", "At Risk", "Blocked", "Planning"]);
+        const validPriorities = new Set(["Critical", "High", "Medium", "Low"]);
+        const projectList = document.getElementById("project-list");
+        const statusMessage = document.getElementById("status-message");
+        const projectCount = document.getElementById("project-count");
+
+        function createElement(tagName, className, text) {
+          const element = document.createElement(tagName);
+          if (className) element.className = className;
+          if (text !== undefined) element.textContent = text;
+          return element;
+        }
+
+        function showMessage(message, type) {
+          projectList.replaceChildren();
+          projectList.classList.toggle("has-message", Boolean(type));
+          projectList.setAttribute("aria-busy", "false");
+          const messageElement = createElement("p", `feedback feedback-${type}`, message);
+          messageElement.setAttribute("role", type === "error" ? "alert" : "status");
+          projectList.append(messageElement);
+          statusMessage.textContent = type === "error" ? "Unable to load projects" : message;
+          projectCount.textContent = "—";
+        }
+
+        function validateProject(project, index) {
+          if (!project || typeof project !== "object" || Array.isArray(project)) {
+            return `Project ${index + 1} is not a valid record.`;
+          }
+          for (const field of requiredFields) {
+            if (typeof project[field] !== "string" || !project[field].trim()) {
+              return `Project ${index + 1} is missing a valid ${field} value.`;
+            }
+          }
+          if (project.summary !== undefined && (typeof project.summary !== "string" || !project.summary.trim())) {
+            return `Project ${index + 1} has an invalid summary value.`;
+          }
+          if (!validStatuses.has(project.status)) {
+            return `Project ${index + 1} has an unsupported status: ${project.status}.`;
+          }
+          if (!validPriorities.has(project.priority)) {
+            return `Project ${index + 1} has an unsupported priority: ${project.priority}.`;
+          }
+          return null;
+        }
+
+        function renderProject(project) {
+          const card = createElement("article", "project-card");
+          const header = createElement("header", "card-header");
+          const title = createElement("h3", "project-name", project.name);
+          const status = createElement(
+            "span",
+            `badge status-badge status-${project.status.toLowerCase().replace(/\s+/g, "-")}`,
+            project.status
+          );
+          header.append(title, status);
+
+          const summary = createElement("p", "project-summary", project.summary || "No project summary provided.");
+          const details = createElement("dl", "project-details");
+          const ownerLabel = createElement("dt", null, "Owner");
+          const ownerValue = createElement("dd", null, project.owner);
+          const activityLabel = createElement("dt", null, "Recent activity");
+          const activityValue = createElement("dd", null, project.recentActivity);
+          const priorityLabel = createElement("dt", null, "Priority");
+          const priorityValue = createElement(
+            "dd",
+            `priority priority-${project.priority.toLowerCase()}`,
+            project.priority
+          );
+          details.append(ownerLabel, ownerValue, activityLabel, activityValue, priorityLabel, priorityValue);
+          card.append(header, summary, details);
+          return card;
+        }
+
+        async function loadProjects() {
+          try {
+            const response = await fetch("project-data.json");
+            if (!response.ok) throw new Error(`The data request returned ${response.status}.`);
+            const data = await response.json();
+            if (!data || !Array.isArray(data.projects)) {
+              throw new Error("Project data must contain a projects array.");
+            }
+            if (data.projects.length === 0) {
+              showMessage("No projects are available right now.", "empty");
+              return;
+            }
+
+            const validationError = data.projects
+              .map(validateProject)
+              .find((error) => error !== null);
+            if (validationError) throw new Error(validationError);
+
+            projectList.replaceChildren(...data.projects.map(renderProject));
+            projectList.classList.remove("has-message");
+            projectList.setAttribute("aria-busy", "false");
+            projectCount.textContent = String(data.projects.length);
+            statusMessage.textContent = `${data.projects.length} projects loaded`;
+          } catch (error) {
+            showMessage(`We could not display the project dashboard. ${error.message}`, "error");
+          }
+        }
+
+        loadProjects();
+      })();
+    </script>
+  </body>
+</html>

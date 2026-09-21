@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "name": "Northstar Migration",
+      "owner": "Maya Chen",
+      "status": "On Track",
+      "recentActivity": "Completed the production data rehearsal and documented the rollback path.",
+      "priority": "High",
+      "summary": "Moving customer reporting to the unified analytics platform."
+    },
+    {
+      "name": "Atlas Mobile",
+      "owner": "Daniel Ortiz",
+      "status": "At Risk",
+      "recentActivity": "The accessibility review found three navigation issues awaiting a design decision.",
+      "priority": "Critical",
+      "summary": "A focused mobile experience for field teams managing urgent work."
+    },
+    {
+      "name": "Signal Insights",
+      "owner": "Priya Nair",
+      "status": "Planning",
+      "recentActivity": "Stakeholders approved the discovery brief and prioritized the first reporting questions.",
+      "priority": "Medium",
+      "summary": "Defining practical health signals for customer success teams."
+    },
+    {
+      "name": "Harbor Integrations",
+      "owner": "Elliot Brooks",
+      "status": "Blocked",
+      "recentActivity": "Partner sandbox credentials are pending before end-to-end verification can begin.",
+      "priority": "High",
+      "summary": "Connecting fulfillment partners to give operations a single shipment view."
+    },
+    {
+      "name": "Compass Knowledge Base",
+      "owner": "Sofia Alvarez",
+      "status": "On Track",
+      "recentActivity": "Published the support taxonomy and scheduled content owners for the first review cycle.",
+      "priority": "Low",
+      "summary": "A searchable, contributor-owned home for internal support guidance."
+    }
+  ]
+}
